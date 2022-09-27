@@ -5,35 +5,56 @@
 
 public with sharing class ContactController {
 
+    private static final String CONDUCTED_STAGE = 'Conducted';
+    private static final String CANCELED_STAGE = 'Canceled';
+    private static final String CANDIDATE_RT = 'Candidate';
+//    private static final String INTERVIEWER_RT = 'Interviewer';
+
     @AuraEnabled(Cacheable=true)
-    public static List<Interview__c> getInterviewsListByAccountId(Id contactId) {
+    public static List<Interview__c> getInterviewsListByContactId(Id contactId) {
         Contact contact = [SELECT Id, RecordTypeId FROM Contact WHERE Id = :contactId];
-        List<Interview__c> interviewsToReturn = new List<Interview__c>();
+        Id candidateRTId = [Select Id, SobjectType, Name From RecordType WHERE Name = :CANDIDATE_RT and SobjectType = 'Contact' limit 1].Id;
+//!!!!!!!works only of no other RecordTypes expect for Candidate/Interviewer will be there in an org
+            return contact.RecordTypeId == candidateRTId ?
+                    [SELECT Id, Applicant_Name__c, Application_Name__c, Interviewer_Name__c, Job_Opening_Name__c, Scheduled_Date__c, Stage__c, Candidate_Approved__c from Interview__c WHERE Applicant__c = :contactId]
+                    :
+                    [SELECT Id, Applicant_Name__c, Application_Name__c, Interviewer_Name__c, Job_Opening_Name__c, Scheduled_Date__c, Stage__c, Candidate_Approved__c from Interview__c WHERE Interviewer__c = :contactId];
 
-        if (contact.RecordTypeId == [Select Id, SobjectType, Name From RecordType WHERE Name = 'Candidate' and SobjectType = 'Contact' limit 1].Id) {
-            interviewsToReturn = [SELECT Id, Applicant_Name__c, Application_Name__c, Interviewer_Name__c, Job_Opening_Name__c, Scheduled_Date__c, Stage__c, Candidate_Approved__c from Interview__c WHERE Applicant__c = :contactId];
-
-        }
-        if (contact.RecordTypeId == [Select Id, SobjectType, Name From RecordType WHERE Name = 'Interviewer' and SobjectType = 'Contact' limit 1].Id) {
-            interviewsToReturn = [SELECT Id, Applicant_Name__c, Application_Name__c, Interviewer_Name__c, Job_Opening_Name__c, Scheduled_Date__c, Stage__c, Candidate_Approved__c from Interview__c WHERE Interviewer__c = :contactId];
-
-        }
-        return interviewsToReturn;
-    }
+//        Contact contact = [SELECT Id, RecordTypeId FROM Contact WHERE Id = :contactId];
+//        List<Interview__c> interviewsToReturn = new List<Interview__c>();
+//
+//        if (contact.RecordTypeId == [Select Id, SobjectType, Name From RecordType WHERE Name = :CANDIDATE_RT and SobjectType = 'Contact' limit 1].Id) {
+//            interviewsToReturn = [SELECT Id, Applicant_Name__c, Application_Name__c, Interviewer_Name__c, Job_Opening_Name__c, Scheduled_Date__c, Stage__c, Candidate_Approved__c from Interview__c WHERE Applicant__c = :contactId];
+//
+//        }
+//        if (contact.RecordTypeId == [Select Id, SobjectType, Name From RecordType WHERE Name = :INTERVIEWER_RT and SobjectType = 'Contact' limit 1].Id) {
+//            interviewsToReturn = [SELECT Id, Applicant_Name__c, Application_Name__c, Interviewer_Name__c, Job_Opening_Name__c, Scheduled_Date__c, Stage__c, Candidate_Approved__c from Interview__c WHERE Interviewer__c = :contactId];
+//
+//        }
+//        return interviewsToReturn;
+}
     @AuraEnabled(Cacheable=true)
-    public static List<Interview__c> getInterviewsListByAccountIdForThisWeek(Id contactId) {
+    public static List<Interview__c> getInterviewsListByContactIdForTheCurrentWeek(Id contactId) {
         Contact contact = [SELECT Id, RecordTypeId FROM Contact WHERE Id = :contactId];
-        List<Interview__c> interviewsToReturn = new List<Interview__c>();
+        Id candidateRTId = [Select Id, SobjectType, Name From RecordType WHERE Name = :CANDIDATE_RT and SobjectType = 'Contact' limit 1].Id;
+//!!!!Same here!!!works only of no other RecordTypes expect for Candidate/Interviewer will be there in an org
+        return contact.RecordTypeId == candidateRTId ?
+                selectInterviewsWithinTheWeekOfToday([SELECT Id, Applicant_Name__c, Application_Name__c, Interviewer_Name__c, Job_Opening_Name__c, Scheduled_Date__c, Stage__c, Candidate_Approved__c from Interview__c WHERE Applicant__c = :contactId])
+        :
+                selectInterviewsWithinTheWeekOfToday([SELECT Id, Applicant_Name__c, Application_Name__c, Interviewer_Name__c, Job_Opening_Name__c, Scheduled_Date__c, Stage__c, Candidate_Approved__c from Interview__c WHERE Interviewer__c = :contactId]);
 
-        if (contact.RecordTypeId == [Select Id, SobjectType, Name From RecordType WHERE Name = 'Candidate' and SobjectType = 'Contact' limit 1].Id) {
-            interviewsToReturn = [SELECT Id, Applicant_Name__c, Application_Name__c, Interviewer_Name__c, Job_Opening_Name__c, Scheduled_Date__c, Stage__c, Candidate_Approved__c from Interview__c WHERE Applicant__c = :contactId];
-            interviewsToReturn = selectInterviewsWithinTheWeekOfToday(interviewsToReturn);
-        }
-        if (contact.RecordTypeId == [Select Id, SobjectType, Name From RecordType WHERE Name = 'Interviewer' and SobjectType = 'Contact' limit 1].Id) {
-            interviewsToReturn = [SELECT Id, Applicant_Name__c, Application_Name__c, Interviewer_Name__c, Job_Opening_Name__c, Scheduled_Date__c, Stage__c, Candidate_Approved__c from Interview__c WHERE Interviewer__c = :contactId];
-            interviewsToReturn = selectInterviewsWithinTheWeekOfToday(interviewsToReturn);
-        }
-        return interviewsToReturn;
+//        Contact contact = [SELECT Id, RecordTypeId FROM Contact WHERE Id = :contactId];
+//        List<Interview__c> interviewsToReturn = new List<Interview__c>();
+//
+//        if (contact.RecordTypeId == [Select Id, SobjectType, Name From RecordType WHERE Name = :CANDIDATE_RT and SobjectType = 'Contact' limit 1].Id) {
+//            interviewsToReturn = [SELECT Id, Applicant_Name__c, Application_Name__c, Interviewer_Name__c, Job_Opening_Name__c, Scheduled_Date__c, Stage__c, Candidate_Approved__c from Interview__c WHERE Applicant__c = :contactId];
+//            interviewsToReturn = selectInterviewsWithinTheWeekOfToday(interviewsToReturn);
+//        }
+//        if (contact.RecordTypeId == [Select Id, SobjectType, Name From RecordType WHERE Name = :INTERVIEWER_RT and SobjectType = 'Contact' limit 1].Id) {
+//            interviewsToReturn = [SELECT Id, Applicant_Name__c, Application_Name__c, Interviewer_Name__c, Job_Opening_Name__c, Scheduled_Date__c, Stage__c, Candidate_Approved__c from Interview__c WHERE Interviewer__c = :contactId];
+//            interviewsToReturn = selectInterviewsWithinTheWeekOfToday(interviewsToReturn);
+//        }
+//        return interviewsToReturn;
     }
 
     private static List<Interview__c> selectInterviewsWithinTheWeekOfToday(List<Interview__c> interviews) {
@@ -60,62 +81,62 @@ public with sharing class ContactController {
         return week;
     }
 
-// 2nd LWC from Here
-//yes conducted
+
     @AuraEnabled(Cacheable=true)
     public static List<Interview__c> getConductedInterviews(Id contactId) {
-        List<Interview__c> interviewsToCheck = getInterviewsListByAccountId(contactId);
+        List<Interview__c> interviewsToCheck = getInterviewsListByContactId(contactId);
         List<Interview__c> conductedInterviews = new List<Interview__c>();
         for (Interview__c interview : interviewsToCheck) {
-            if (interview.Stage__c == 'Conducted') {
+            if (interview.Stage__c == CONDUCTED_STAGE) {
                 conductedInterviews.add(interview);
             }
         }
         return conductedInterviews;
     }
 
-    //yes Canceled
+
     @AuraEnabled(Cacheable=true)
     public static List<Interview__c> getCancelledInterviews(Id contactId) {
-        List<Interview__c> interviewsToCheck = getInterviewsListByAccountId(contactId);
+        List<Interview__c> interviewsToCheck = getInterviewsListByContactId(contactId);
         List<Interview__c> canceledInterviews = new List<Interview__c>();
         for (Interview__c interview : interviewsToCheck) {
-            if (interview.Stage__c == 'Canceled') {
+            if (interview.Stage__c == CANCELED_STAGE) {
                 canceledInterviews.add(interview);
             }
         }
         return canceledInterviews;
     }
-//yes Job Offer
+
     @AuraEnabled(Cacheable=true)
     public static List<Job_Offer__c> getSuccessfulInterviewsWithJobOffer(Id contactId) {
-        List<Interview__c> interviewsToCheck = getInterviewsListByAccountId(contactId);
-        List<Id> interviewIds = new List<Id>();
-        for (Interview__c interview : interviewsToCheck) {
-            interviewIds.add(interview.Id);
-        }
+        return [SELECT Id, Applicant__c from Job_Offer__c WHERE Applicant__c = :contactId];
 
-        return [SELECT Id, Interview__c from Job_Offer__c WHERE Interview__c IN :interviewIds];
+//        List<Interview__c> interviewsToCheck = getInterviewsListByContactId(contactId);
+//        List<Id> interviewIds = new List<Id>();
+//        for (Interview__c interview : interviewsToCheck) {
+//            interviewIds.add(interview.Id);
+//        }
+//        return [SELECT Id, Interview__c from Job_Offer__c WHERE Interview__c IN :interviewIds];
     }
-//yes Failed
+
     @AuraEnabled(Cacheable=true)
     public static List<Interview__c> getFailedInterviews(Id contactId) {
-        List<Interview__c> interviewsToCheck = getInterviewsListByAccountId(contactId);
+        List<Interview__c> interviewsToCheck = getInterviewsListByContactId(contactId);
         List<Interview__c> failedInterviews = new List<Interview__c>();
         for (Interview__c interview : interviewsToCheck) {
-            if (interview.Stage__c == 'Conducted' && !interview.Candidate_Approved__c) {
+            if (interview.Stage__c == CONDUCTED_STAGE && interview.Candidate_Approved__c == false) {
                 failedInterviews.add(interview);
             }
         }
         return failedInterviews;
     }
-//yes successful
+
     @AuraEnabled(Cacheable=true)
     public static List<Interview__c> getSuccessfulInterviews(Id contactId) {
-        List<Interview__c> interviewsToCheck = getInterviewsListByAccountId(contactId);
+        List<Interview__c> interviewsToCheck = getInterviewsListByContactId(contactId);
         List<Interview__c> successfulInterviews = new List<Interview__c>();
         for (Interview__c interview : interviewsToCheck) {
-            if (interview.Stage__c == 'Conducted' && interview.Candidate_Approved__c) {
+            if (interview.Stage__c == CONDUCTED_STAGE && interview.Candidate_Approved__c == true) {
                 successfulInterviews.add(interview);
             }
         }
