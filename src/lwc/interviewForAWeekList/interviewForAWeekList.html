@@ -1,0 +1,43 @@
+<!--
+ - Created by Dennis Klochko on 9/25/2022.
+ -->
+
+<!-- Interview For A Week List -->
+    <template>
+        <lightning-card title="All your Interviews">
+            <div class="slds-m-around_medium">
+                <template if:true={interviews.data}>
+                    <lightning-datatable
+                            key-field="Id"
+                            data={interviews.data}
+                            columns={columns}>
+                    </lightning-datatable>
+                </template>
+                <template if:true={interviews.error}>
+                    <p>{interviews.error.statusText}</p>
+                    <p>{interviews.error.body}</p>
+                    <p>{interviews.error.status}</p>
+                    <p>{interviews.error.ok}</p>
+                   <p>Sorry, something went wrong FUUUUCK</p>
+                </template>
+            </div>
+        </lightning-card>
+        <lightning-card title="Interviews for this week">
+            <div class="slds-m-around_medium">
+                <template if:true={interviewsweek.data}>
+                    <lightning-datatable
+                            key-field="Id"
+                            data={interviewsweek.data}
+                            columns={columns}>
+                    </lightning-datatable>
+                </template>
+                <template if:true={interviews.error}>
+                    <p>{interviews.error.statusText}</p>
+                    <p>{interviews.error.body}</p>
+                    <p>{interviews.error.status}</p>
+                    <p>{interviews.error.ok}</p>
+                    <p>Sorry, something went wrong FUUUUCK</p>
+                </template>
+            </div>
+        </lightning-card>
+    </template>

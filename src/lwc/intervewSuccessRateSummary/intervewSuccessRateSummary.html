@@ -1,0 +1,37 @@
+<!--
+ - Created by Dennis Klochko on 9/25/2022.
+ -->
+
+<!-- Intervew Success Rate Summary -->
+<template>
+    <lightning-card title="Your Interview Lifetime Summary">
+        <div class="slds-m-around_medium">
+            <template if:true={interviews.data}>
+                <div><p>You have {interviews.data.length} interviews in your list.</p></div>
+            </template>
+            <template if:true={conductedInterviews.data}>
+                <div><p>Conducted interviews {conductedInterviews.data.length} </p></div>
+            </template>
+            <template if:true={successfulInterviews.data}>
+                <div><p>Successful interviews {successfulInterviews.data.length} </p></div>
+            </template>
+            <template if:true={failedInterviews.data}>
+                <div><p>Failed interviews {failedInterviews.data.length} </p></div>
+            </template>
+            <template if:true={canceledInterviews.data}>
+                <div><p>Canceled interviews {canceledInterviews.data.length} </p></div>
+            </template>
+            <template if:true={jobOfferInterviews.data}>
+                <div><p>Job Offers {jobOfferInterviews.data.length} </p></div>
+            </template>
+
+            <template if:true={interviews.error}>
+                <p>{interviews.error.statusText}</p>
+                <p>{interviews.error.body}</p>
+                <p>{interviews.error.status}</p>
+                <p>{interviews.error.ok}</p>
+                <p>Sorry, something went wrong FUUUUCK</p>
+            </template>
+        </div>
+    </lightning-card>
+</template>
